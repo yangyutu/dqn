@@ -8,6 +8,7 @@ import numpy as np
 import itertools
 import cv2
 import os
+import envs
 
 
 class Trainer:
