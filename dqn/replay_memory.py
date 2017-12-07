@@ -55,10 +55,10 @@ class ReplayMemory:
         offsets = range(self.agent_history_length)
 
         obs_batch = np.stack([np.stack([self.obs[i+j] for i in starting_indices]) for j in offsets])
-        action_batch = np.stack([self.action[i+self.agent_history_length-1] for i in starting_indices])
-        reward_batch = np.stack([self.reward[i+self.agent_history_length-1] for i in starting_indices])
+        action_batch = np.stack([self.action[i+j] for i in starting_indices for j in offsets])
+        reward_batch = np.stack([self.reward[i+j] for i in starting_indices for j in offsets])
         next_obs_batch = np.stack([np.stack([self.obs[i+j+1] for i in starting_indices]) for j in offsets])
-        non_terminal_multiplier = 1 - np.stack([self.terminal[i+self.agent_history_length-1] for i in starting_indices])
+        non_terminal_multiplier = 1 - np.stack([self.terminal[i+j] for i in starting_indices for j in offsets])
 
         axis = 0 if self.recurrent_mode else -1
         obs_batch = np.concatenate(obs_batch, axis)

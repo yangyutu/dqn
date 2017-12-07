@@ -152,8 +152,9 @@ class CartPoleRecNet(DQN):
         self.init_state = cell.zero_state(self.batch_size, tf.float32)
 
         outputs, self.state = tf.nn.dynamic_rnn(cell, inputs=hidden, initial_state=self.init_state, dtype=tf.float32, time_major=True)
+        outputs = tf.reshape(outputs, [tracelength * batch_size, tf.size(outputs[0][0])])
 
-        qvalues = layers.fully_connected(outputs[-1], num_outputs=self.n_actions, activation_fn=None)
+        qvalues = layers.fully_connected(outputs, num_outputs=self.n_actions, activation_fn=None)
         return qvalues
 
     def _optimization(self, loss):
