@@ -19,7 +19,7 @@ class TigerProblemEnv(gym.Env):
         self.t = None
         self.state = None
 
-        self.HORIZON = 105
+        self.HORIZON = 4
         self.OBS_RELIABILITY = 0.85
 
         self.STATE_TIGER_LEFT = 0
@@ -56,6 +56,7 @@ class TigerProblemEnv(gym.Env):
             reward = self.REWARD_LISTEN
 
         done = (self.t >= self.HORIZON)
+        #done = (action == self.ACTION_OPEN_LEFT_DOOR or action == self.ACTION_OPEN_RIGHT_DOOR)
 
         if self.t == self.HORIZON + 1:
             logger.warning("You are calling 'step()' even though this environment has already returned done = True. You should always call 'reset()' once you receive 'done = True' -- any further steps are undefined behavior.")

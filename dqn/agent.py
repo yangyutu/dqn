@@ -16,6 +16,8 @@ class Agent:
         self.nn = DQN(config, session, 'nn_predict', obs_shape, n_actions)
         self.target_nn = DQN(config, session, 'nn_target', obs_shape, n_actions, src_network=self.nn)
 
+        self.x = 0
+
     def random_policy(self):
         return self._get_random_action()
 
@@ -36,6 +38,9 @@ class Agent:
             qvalues, self.rnn_state = self.session.run([self.nn.qvalues, self.nn.state], feed_dict=feed_dict)
         else:
             qvalues = self.session.run(self.nn.qvalues, feed_dict=feed_dict)
+        self.x += 1
+        if self.x % 100 == 0:
+            print(qvalues, flush=True)
 
         return qvalues
 

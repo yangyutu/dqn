@@ -6,7 +6,7 @@ class Episode:
         self.obs = []
         self.action = []
         self.reward = []
-        self.next_obs = []
+        self.terminal = []
 
 
 class ReplayMemory:
@@ -32,15 +32,15 @@ class ReplayMemory:
         assert not self.ready_for_outcome
         self.ready_for_outcome = True
 
-        self.episodes[self.insertion_ptr].obs = obs
+        self.episodes[self.insertion_ptr].obs.append(obs)
 
     def save_outcome(self, action, reward, terminal):
         assert self.ready_for_outcome
         self.ready_for_outcome = False
 
-        self.episodes[self.insertion_ptr].action = action
-        self.episodes[self.insertion_ptr].reward = reward
-        self.episodes[self.insertion_ptr].terminal = terminal
+        self.episodes[self.insertion_ptr].action.append(action)
+        self.episodes[self.insertion_ptr].reward.append(reward)
+        self.episodes[self.insertion_ptr].terminal.append(terminal)
 
         if terminal:
             self._update_insertion_ptr()
@@ -80,11 +80,17 @@ class ReplayMemory:
         next_obs_batch = np.concatenate(next_obs_batch, axis)
         '''
 
-        i = np.random.choice(self.size)
-        obs_batch = np.array(self.episodes[i].obs)
-        action_batch = np.array(self.episodes[i].action)
-        reward_batch = np.array(self.episodes[i].reward)
-        next_obs = np.array(self.episodes[i].next_obs)
-        non_terminal_multiplier = 1 - np.array(self.episodes[i].terminal)
+        i = self.insertion_ptr
+        while i == self.insertion_ptr:
+            i = np.random.choice(self.size)
+
+        e = self.episodes[i]
+
+        obs_batch = np.array(e.obs)
+        action_batch = np.array(e.action)
+        reward_batch = np.array(e.reward)
+        next_obs_batch = np.array(e.obs[1:] + [e.obs[0]])
+        non_terminal_multiplier = 1 - np.array(e.terminal)
+
 
         return obs_batch, action_batch, reward_batch, next_obs_batch, non_terminal_multiplier
