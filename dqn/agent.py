@@ -28,7 +28,7 @@ class Agent:
         return random.randrange(self.n_actions)
 
     def _get_greedy_action(self, obs):
-        return np.argmax(self._get_qvalues(obs))
+        return np.argmax(self._get_qvalues(obs), axis=-1)[0]
 
     def _get_qvalues(self, obs):
         feed_dict = {self.nn.obs_input: [obs]}
@@ -39,8 +39,8 @@ class Agent:
         else:
             qvalues = self.session.run(self.nn.qvalues, feed_dict=feed_dict)
         self.x += 1
-        if self.x % 100 == 0:
-            print(qvalues, flush=True)
+        #if self.x % 100 == 0:
+        #    print(qvalues, flush=True)
 
         return qvalues
 

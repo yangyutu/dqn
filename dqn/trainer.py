@@ -73,7 +73,7 @@ class Trainer:
             if t % self.target_q_update_freq == 0:
                 self.agent.update_target()
 
-            obs = self._preprocess(obs)
+            #obs = self._preprocess(obs)
             self.replay_memory.save_obs(obs)
 
             if t < self.n_pretrain_steps:
@@ -97,7 +97,7 @@ class Trainer:
             if terminal:
                 n_episodes += 1
 
-                mov_avg_undisc_return = 0.05 * undisc_return + 0.95 * mov_avg_undisc_return
+                mov_avg_undisc_return = 0.001 * undisc_return + 0.999 * mov_avg_undisc_return
                 self.logger.info('Episode completed. Return: {} (discounted), {} (undiscounted), {} (undiscounted, moving avg)'.format(disc_return, undisc_return, mov_avg_undisc_return))
 
                 self.traj_undisc_return.append(t, undisc_return, y_stdev=0)
@@ -138,7 +138,7 @@ class Trainer:
             collected_prediction = False
 
             for t in itertools.count():
-                obs = self._preprocess(obs)
+                #obs = self._preprocess(obs)
                 replay_memory.save_obs(obs)
 
                 if not self.agent.nn.is_recurrent():

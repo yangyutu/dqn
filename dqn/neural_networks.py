@@ -146,20 +146,21 @@ class CartPoleRecNet(DQN):
         return True
 
     def _neural_network(self, obs_input, tracelength, batch_size):
-        hidden = tf.reshape(obs_input, [tracelength, batch_size, tf.size(obs_input[0])])
+        hidden = tf.reshape(obs_input, [tf.size(obs_input), 1, 1])
 
-        cell = tf.contrib.rnn.BasicLSTMCell(num_units=512)
+        cell = tf.contrib.rnn.BasicLSTMCell(num_units=4096)
         self.init_state = cell.zero_state(self.batch_size, tf.float32)
 
         outputs, self.state = tf.nn.dynamic_rnn(cell, inputs=hidden, initial_state=self.init_state, dtype=tf.float32, time_major=True)
-        outputs = tf.reshape(outputs, [tracelength * batch_size, tf.size(outputs[0][0])])
+        outputs = tf.reshape(outputs, [-1, tf.size(outputs[0])])
 
         qvalues = layers.fully_connected(outputs, num_outputs=16, activation_fn=tf.nn.relu)
         qvalues = layers.fully_connected(qvalues, num_outputs=self.n_actions, activation_fn=None)
         return qvalues
 
     def _optimization(self, loss):
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=0.00025, decay=0.95, momentum=0.95, epsilon=0.01)
+        #optimizer = tf.train.RMSPropOptimizer(learning_rate=0.00025, decay=0.95, momentum=0.95, epsilon=0.01)
+        optimizer = tf.train.AdamOptimizer()
         gradients = optimizer.compute_gradients(loss)
         gradients = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in gradients]
 
