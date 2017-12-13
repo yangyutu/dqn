@@ -97,7 +97,7 @@ class Trainer:
             if terminal:
                 n_episodes += 1
 
-                mov_avg_undisc_return = 0.001 * undisc_return + 0.999 * mov_avg_undisc_return
+                mov_avg_undisc_return = 0.0005 * undisc_return + 0.9995 * mov_avg_undisc_return
                 self.logger.info('Episode completed. Return: {} (discounted), {} (undiscounted), {} (undiscounted, moving avg)'.format(disc_return, undisc_return, mov_avg_undisc_return))
 
                 self.traj_undisc_return.append(t, undisc_return, y_stdev=0)

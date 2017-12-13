@@ -22,7 +22,7 @@ class TigerProblemEnv(gym.Env):
         self.HORIZON = 10
         self.OBS_RELIABILITY = 0.85
 
-        self.STATE_TIGER_LEFT = 0
+        self.STATE_TIGER_LEFT = -1
         self.STATE_TIGER_RIGHT = 1
 
         self.ACTION_OPEN_LEFT_DOOR = 0
@@ -75,7 +75,7 @@ class TigerProblemEnv(gym.Env):
         pass
 
     def _random_state(self):
-        return self.np_random.randint(self.observation_space.n)
+        return self.np_random.choice([self.STATE_TIGER_LEFT, self.STATE_TIGER_RIGHT])
 
     def _listen(self):
         if self.state == self.STATE_TIGER_LEFT:
