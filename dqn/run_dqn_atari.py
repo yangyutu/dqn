@@ -148,15 +148,16 @@ def get_session():
     return session
 
 def get_env(task, seed):
-    env_id = task.env_id
+    import gym_pull
+    gym_pull.pull('github.com/ppaquette/gym-doom')
+    env_id = 'ppaquette/DoomBasic-v0'
 
     env = gym.make(env_id)
 
     set_global_seeds(seed)
     env.seed(seed)
 
-    expt_dir = '/tmp/hw3_vid_dir2/'
-    env = wrappers.Monitor(env, osp.join(expt_dir, "gym"), force=True)
+    env = wrappers.Monitor(env, 'videos/', force=True)
     env = wrap_deepmind(env)
 
     return env

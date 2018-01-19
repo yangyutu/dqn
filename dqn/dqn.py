@@ -75,7 +75,7 @@ def learn(env,
         If not None gradients' norms are clipped to this value.
     """
     assert type(env.observation_space) == gym.spaces.Box
-    assert type(env.action_space)      == gym.spaces.Discrete
+    #assert type(env.action_space)      == gym.spaces.Discrete
 
     ###############
     # BUILD MODEL #
@@ -91,7 +91,7 @@ def learn(env,
             input_shape = (img_h, img_w, frame_history_len * img_c)
         else:
             input_shape = (frame_history_len, img_h, img_w, img_c)
-    num_actions = env.action_space.n
+    num_actions = env.action_space.low.shape[0]
 
     # set up placeholders
     # placeholder for current observation (or state)
@@ -221,13 +221,19 @@ def learn(env,
         epsilon = exploration.value(t)
 
         if random.random() < epsilon or not model_initialized:
-            action = env.action_space.sample()
+            #action = env.action_space.sample()
+            action = random.randrange(num_actions)
         else:
             last_obs = np.expand_dims(last_obs, 0)
             q, = session.run([qvalues], feed_dict={obs_t_ph: last_obs})
             action = np.argmax(q)
 
-        obs, reward, done, _ = env.step(action)
+        def convert(action):
+            a = np.zeros([num_actions])
+            a[action] = 1
+            return a
+
+        obs, reward, done, _ = env.step(convert(action))
         replay_buffer.store_effect(idx, action, reward, done)
 
         if done:
