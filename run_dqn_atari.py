@@ -13,6 +13,7 @@ def main():
     parser.add_argument('--env',         type=str,   default='PongNoFrameskip-v3')
     parser.add_argument('--Lambda',      type=float, default=0.0)
     parser.add_argument('--history_len', type=int,   default=4)
+    parser.add_argument('--seed',        type=int,   default=0)
     parser.add_argument('--recurrent',   action='store_true')
     parser.add_argument('--video',       action='store_true')
     args = parser.parse_args()
@@ -25,7 +26,7 @@ def main():
         env.video_callable = lambda e: False
     env = atari_wrappers.wrap_deepmind(env)
 
-    seed = 0
+    seed = args.seed
     utils.set_global_seeds(seed)
     env.seed(seed)
 
