@@ -22,7 +22,7 @@ class CartPoleNet(QFunction):
             hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
             qvalues = dense(hidden, units=n_actions, activation=None)
 
-        return qvalues, None
+        return qvalues[:, 0], None
 
 
 class AtariRecurrentConvNet(QFunction):

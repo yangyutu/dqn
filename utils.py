@@ -211,6 +211,10 @@ def get_wrapper_by_name(env, classname):
             raise ValueError("Couldn't find wrapper named %s"%classname)
 
 
+_min = 1.
+_max = 0.
+
+
 class Episode(object):
     def __init__(self, history_len, discount, Lambda, refresh_func):
         self.finished = False
@@ -254,7 +258,8 @@ class Episode(object):
 
     def sample(self):
         i = random.randrange(self.length)
-        return (self._encode_observation(i), self.action[i], self.lambda_return[i])
+        lambda_return = (self.lambda_return[i] - _min) / (_max - _min)
+        return (self._encode_observation(i), self.action[i], lambda_return)
 
     def refresh(self):
         obs = np.array([self._encode_observation(i) for i in range(self.length)])
@@ -262,7 +267,12 @@ class Episode(object):
         qvalues = self.refresh_func(obs)
         qvalues = np.pad(qvalues[1:], pad_width=(0,1), mode='constant')
 
+        global _max; global _min
+        qvalues = (_max - _min) * qvalues + _min
+
         self.lambda_return = self._calc_lambda_return(qvalues)
+        _min = min(_min, np.min(self.lambda_return))
+        _max = max(_max, np.max(self.lambda_return))
 
     def _encode_observation(self, idx):
         end = (idx % self.length) + 1 # make noninclusive
