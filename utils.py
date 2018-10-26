@@ -271,8 +271,8 @@ class Episode(object):
         qvalues = (_max - _min) * qvalues + _min
 
         self.lambda_return = self._calc_lambda_return(qvalues)
-        _min = min(_min, np.min(self.lambda_return))
-        _max = max(_max, np.max(self.lambda_return))
+        _min += 0.25 * (min(_min, np.min(self.lambda_return)) - _min)
+        _max += 0.25 * (max(_max, np.max(self.lambda_return)) - _max)
 
     def _encode_observation(self, idx):
         end = (idx % self.length) + 1 # make noninclusive
