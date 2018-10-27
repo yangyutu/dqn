@@ -211,8 +211,8 @@ def get_wrapper_by_name(env, classname):
             raise ValueError("Couldn't find wrapper named %s"%classname)
 
 
-_min = 1.
-_max = 0.
+_max = 1.
+_min = 0.
 
 
 class Episode(object):
@@ -271,8 +271,6 @@ class Episode(object):
         qvalues = (_max - _min) * qvalues + _min
 
         self.lambda_return = self._calc_lambda_return(qvalues)
-        _min += 0.25 * (min(_min, np.min(self.lambda_return)) - _min)
-        _max += 0.25 * (max(_max, np.max(self.lambda_return)) - _max)
 
     def _encode_observation(self, idx):
         end = (idx % self.length) + 1 # make noninclusive
@@ -350,8 +348,15 @@ class ReplayBuffer(object):
         self.current_episode = self._new_episode()
 
     def refresh(self):
+        new_max = 1.
+        new_min = 0.
         for e in self.episodes:
             e.refresh()
+            new_max = max(new_max, np.max(e.lambda_return))
+            new_min = min(new_min, np.min(e.lambda_return))
+        global _max; global _min
+        _max += 1.0 * (max(_max, new_max) - _max)
+        _min += 1.0 * (min(_min, new_min) - _min)
 
     def _new_episode(self):
         return Episode(self.history_len, self.discount, self.Lambda, self.refresh_func)
