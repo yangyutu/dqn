@@ -3,18 +3,15 @@ from tensorflow.python.layers.layers import *
 
 
 class QFunction:
-    def is_recurrent(self):
+    def __init__(self, state, n_actions, scope):
         raise NotImplementedError
 
-    def __call__(self, state, n_actions, scope):
+    def is_recurrent(self):
         raise NotImplementedError
 
 
 class CartPoleNet(QFunction):
-    def is_recurrent(self):
-        return False
-
-    def __call__(self, state, n_actions, scope):
+    def __init__(self, state, n_actions, scope):
         hidden = flatten(state) # flatten to make sure 2-D
 
         with tf.variable_scope(scope):
@@ -22,14 +19,14 @@ class CartPoleNet(QFunction):
             hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
             qvalues = dense(hidden, units=n_actions, activation=None)
 
-        return qvalues, None
+        self.qvalues = qvalues
+
+    def is_recurrent(self):
+        return False
 
 
 class AtariRecurrentConvNet(QFunction):
-    def is_recurrent(self):
-        return True
-
-    def __call__(self, state, n_actions, scope):
+    def __init__(self, state, n_actions, scope):
         state = tf.cast(state, tf.float32) / 255.0
 
         hidden = tf.reshape(state, [-1, state.shape[2], state.shape[3], state.shape[4]])
@@ -42,20 +39,20 @@ class AtariRecurrentConvNet(QFunction):
 
             hidden = tf.reshape(hidden, [tf.shape(state)[0], state.shape[1], tf.size(hidden[0])])
 
-            cell = tf.contrib.rnn.BasicLSTMCell(num_units=512)
+            cell = tf.nn.rnn_cell.LSTMCell(num_units=512)
             self.rnn_state = cell.zero_state(tf.shape(state)[0], tf.float32)
             hidden, new_rnn_state = tf.nn.dynamic_rnn(cell, inputs=hidden, initial_state=self.rnn_state, dtype=tf.float32)
 
             qvalues = dense(hidden[:, -1], units=n_actions, activation=None)
 
-        return qvalues, new_rnn_state
+        self.qvalues = qvalues
+
+    def is_recurrent(self):
+        return True
 
 
 class AtariConvNet(QFunction):
-    def is_recurrent(self):
-        return False
-
-    def __call__(self, state, n_actions, scope):
+    def __init__(self, state, n_actions, scope):
         state = tf.cast(state, tf.float32) / 255.0
 
         hidden = state
@@ -73,4 +70,7 @@ class AtariConvNet(QFunction):
             hidden  = dense(hidden, units=512,       activation=tf.nn.relu)
             qvalues = dense(hidden, units=n_actions, activation=None)
 
-        return qvalues, None
+        self.qvalues = qvalues
+
+    def is_recurrent(self):
+        return False

@@ -10,7 +10,7 @@ from atari_wrappers import *
 
 
 def learn(env,
-          q_func,
+          QFunction,
           replay_memory,
           optimizer,
           exploration=LinearSchedule(1000000, 0.1),
@@ -36,8 +36,9 @@ def learn(env,
     act_t_ph      = tf.placeholder(tf.int32,   [None])
     return_ph     = tf.placeholder(tf.float32, [None])
 
-    qvalues, rnn_state_tf = q_func(obs_t_ph, n_actions, scope='q_func')
-    q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
+    q_func = QFunction(obs_t_ph, n_actions, scope='q_func')
+    qvalues = q_func.qvalues
+    rnn_state_tf = q_func.rnn_state if q_func.is_recurrent() else None
 
     action_indices = tf.stack([tf.range(tf.size(act_t_ph)), act_t_ph], axis=-1)
     onpolicy_qvalues = tf.gather_nd(qvalues, action_indices)
@@ -46,7 +47,7 @@ def learn(env,
     total_error = tf.reduce_mean(tf.square(td_error))
 
     # compute and clip gradients
-    grads_and_vars = optimizer.compute_gradients(total_error, var_list=q_func_vars)
+    grads_and_vars = optimizer.compute_gradients(total_error, var_list=tf.trainable_variables())
     if grad_clip is not None:
         grads_and_vars = [(tf.clip_by_value(g, -grad_clip, +grad_clip), v) for g, v in grads_and_vars]
     train_op = optimizer.apply_gradients(grads_and_vars)
