@@ -156,11 +156,10 @@ class TestCaseReturns(unittest.TestCase):
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([    3,     4,    5,     6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([    6,     4,    2,     5,     3]))
+        self.assertNumpyEqual(e.obs,     np.array([           3,       4,           5,     6,     7]))
+        self.assertNumpyEqual(e.action,  np.array([           6,       4,           2,     5,     3]))
         self.assertNumpyEqual(e.returns, np.array([188.58632258, 158.976, 78.51428571, 148.0, -40.0]))
 
-    '''
     def test_watkins_renormalized_lambda(self):
         self.exp_mask = np.array([1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0])  # Suppose a_1 and a_5 are exploratory
 
@@ -181,13 +180,10 @@ class TestCaseReturns(unittest.TestCase):
         e = replay_memory.episodes[0]
         self.assertNumpyEqual(e.obs,     np.array([    0,     1,    2]))
         self.assertNumpyEqual(e.action,  np.array([    7,     0,    1]))
-        #self.assertNumpyEqual(e.returns, np.array([190.0, 260.0, 20.0]))
-        print(e.returns)
+        self.assertNumpyEqual(e.returns, np.array([208.0, 260.0, 20.0]))
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([    3,     4,    5,     6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([    6,     4,    2,     5,     3]))
-        #self.assertNumpyEqual(e.returns, np.array([214.0, 210.0, 60.0, 220.0, -40.0]))
-        print(e.returns)
-    '''
+        self.assertNumpyEqual(e.obs,     np.array([          3,     4,    5,     6,     7]))
+        self.assertNumpyEqual(e.action,  np.array([          6,     4,    2,     5,     3]))
+        self.assertNumpyEqual(e.returns, np.array([199.08571429, 168.0, 60.0, 148.0, -40.0]))

@@ -83,8 +83,6 @@ class NormalizedLambdaEpisode(LambdaEpisode):
     def _calc_lambda_returns(self, qvalues, mask):
         next_qvalues = shifted(qvalues, 1)  # Final state in episode is terminal
         lambda_returns = self.reward + (self.discount * next_qvalues)
-        onesteps = np.copy(lambda_returns)
-        #print(lambda_returns)
         N = 1
         for i in reversed(range(self.length - 1)):
             def k(n):
@@ -93,9 +91,7 @@ class NormalizedLambdaEpisode(LambdaEpisode):
                 return sum([self.Lambda**i for i in range(n)])
             l = self.Lambda * mask[i]
             N = (N * int(mask[i])) + 1
-            print(k(N), k(N-1))
             lambda_returns[i] = (1. / k(N)) * (lambda_returns[i] + l * k(N-1) * (self.reward[i] + self.discount * lambda_returns[i+1]))
-        print()
         return lambda_returns
 
 
