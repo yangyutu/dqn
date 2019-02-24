@@ -46,6 +46,11 @@ def learn(env,
     td_error = return_ph - onpolicy_qvalues
     total_error = tf.reduce_mean(tf.square(td_error))
 
+    #~~#
+    print('total # of parameters:', np.sum([np.prod(v.shape) for v in tf.trainable_variables()]))
+    #return
+    #~~#
+
     # compute and clip gradients
     grads_and_vars = optimizer.compute_gradients(total_error, var_list=tf.trainable_variables())
     if grad_clip is not None:

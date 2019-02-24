@@ -50,9 +50,11 @@ def main():
                         nsteps=args.nsteps,
                     )
 
+    assert args.recurrent
+
     dqn.learn(
         env,
-        AtariRecurrentConvNet if args.recurrent else AtariConvNet,
+        AtariRecurrentConvNet2,
         replay_memory,
         optimizer=optimizer,
         exploration=exploration_schedule,
