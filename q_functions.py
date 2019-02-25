@@ -18,8 +18,8 @@ class CartPoleNet(QFunction):
         hidden = flatten(state) # flatten to make sure 2-D
 
         with tf.variable_scope(scope):
-            hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
-            hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
+            hidden  = dense(hidden, units=128,       activation=tf.nn.relu)
+            hidden  = dense(hidden, units=128,       activation=tf.nn.relu)
             qvalues = dense(hidden, units=n_actions, activation=None)
 
         return qvalues, None
