@@ -25,6 +25,36 @@ class CartPoleNet(QFunction):
         return False
 
 
+class AtariRamNet(QFunction):
+    def __init__(self, state, n_actions, scope):
+        assert state.shape[1] == 1
+        print(state.shape)
+        hidden = flatten(state)
+        hidden = tf.expand_dims(hidden, axis=2)
+        #hidden = state
+        print(hidden.shape)
+
+        with tf.variable_scope(scope):
+            cell = tf.nn.rnn_cell.LSTMCell(num_units=512)
+            self.rnn_state = cell.zero_state(tf.shape(state)[0], tf.float32)
+            hidden, new_rnn_state = tf.nn.dynamic_rnn(cell, inputs=hidden, initial_state=self.rnn_state, dtype=tf.float32)
+            print(hidden.shape)
+
+            hidden = flatten(hidden[:, -1, :])
+            print(hidden.shape)
+
+            #hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
+            hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
+            print(hidden.shape)
+            qvalues = dense(hidden, units=n_actions, activation=None)
+            print(qvalues.shape)
+
+        self.qvalues = qvalues
+
+    def is_recurrent(self):
+        return False
+
+
 class AtariRecurrentConvNet(QFunction):
     def __init__(self, state, n_actions, scope):
         state = tf.cast(state, tf.float32) / 255.0

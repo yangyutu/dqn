@@ -35,7 +35,7 @@ def main():
 
     replay_memory = NStepReplayMemory(
                         size=1000000,
-                        history_len=args.history_len,
+                        history_len=1,
                         discount=0.99,
                         nsteps=args.nsteps,
                     )
@@ -44,7 +44,8 @@ def main():
 
     dqn.learn(
         env,
-        CartPoleNet,
+        #CartPoleNet,
+        AtariRamNet,
         replay_memory,
         optimizer=optimizer,
         exploration=exploration_schedule,
