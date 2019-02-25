@@ -13,10 +13,11 @@ class QFunction:
 class CartPoleNet(QFunction):
     def __init__(self, state, n_actions, scope):
         hidden = flatten(state) # flatten to make sure 2-D
+        hidden = tf.cast(hidden, tf.float32) / 255.0
 
         with tf.variable_scope(scope):
-            hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
-            hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
+            hidden  = dense(hidden, units=128,       activation=tf.nn.relu)
+            hidden  = dense(hidden, units=128,       activation=tf.nn.relu)
             qvalues = dense(hidden, units=n_actions, activation=None)
 
         self.qvalues = qvalues
@@ -31,11 +32,11 @@ class AtariRamNet(QFunction):
         print(state.shape)
         hidden = flatten(state)
         hidden = tf.expand_dims(hidden, axis=2)
-        #hidden = state
+        hidden = tf.cast(hidden, tf.float32) / 255.0
         print(hidden.shape)
 
         with tf.variable_scope(scope):
-            cell = tf.nn.rnn_cell.LSTMCell(num_units=512)
+            cell = tf.nn.rnn_cell.LSTMCell(num_units=128)
             self.rnn_state = cell.zero_state(tf.shape(state)[0], tf.float32)
             hidden, new_rnn_state = tf.nn.dynamic_rnn(cell, inputs=hidden, initial_state=self.rnn_state, dtype=tf.float32)
             print(hidden.shape)
@@ -43,8 +44,7 @@ class AtariRamNet(QFunction):
             hidden = flatten(hidden[:, -1, :])
             print(hidden.shape)
 
-            #hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
-            hidden  = dense(hidden, units=512,       activation=tf.nn.tanh)
+            hidden  = dense(hidden, units=128,       activation=tf.nn.relu)
             print(hidden.shape)
             qvalues = dense(hidden, units=n_actions, activation=None)
             print(qvalues.shape)

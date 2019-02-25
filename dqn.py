@@ -32,7 +32,7 @@ def learn(env,
     # build model
     session = get_session()
 
-    obs_t_ph      = tf.placeholder(tf.float32, [None] + list(input_shape))
+    obs_t_ph      = tf.placeholder(tf.uint8,   [None] + list(input_shape))
     act_t_ph      = tf.placeholder(tf.int32,   [None])
     return_ph     = tf.placeholder(tf.float32, [None])
 
