@@ -1,3 +1,4 @@
+import roboschool
 import gym
 import tensorflow as tf
 import numpy as np
@@ -26,9 +27,9 @@ class PulseWidthModulatedEnv(gym.ActionWrapper):
 
 
 def main():
-    env = gym.make('Pendulum-v0')
+    env = gym.make('RoboschoolInvertedPendulum-v1')
     env = PulseWidthModulatedEnv(env)
-    env = gym.wrappers.Monitor(env, 'videos/', force=True)
+    env = gym.wrappers.Monitor(env, 'videos/', force=True, video_callable=lambda e: False)
 
     seed = 0
     utils.set_global_seeds(seed)
