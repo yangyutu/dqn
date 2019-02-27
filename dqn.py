@@ -24,23 +24,44 @@ def learn(env,
     ):
 
     assert type(env.observation_space) == gym.spaces.Box
-    assert type(env.action_space)      == gym.spaces.Discrete
+    #assert type(env.action_space)      == gym.spaces.Discrete
 
     input_shape = (replay_memory.history_len, *env.observation_space.shape)
-    n_actions = env.action_space.n
+    if isinstance(env.action_space, gym.spaces.Discrete):
+        n_actions = env.action_space.n
+    elif isinstance(env.action_space, gym.spaces.MultiDiscrete):
+        #print(env.env.old_action_space)
+        #n = env.env.old_action_space.shape[0]
+        n_actions = env.action_space.nvec.size
 
     # build model
     session = get_session()
 
     obs_t_ph      = tf.placeholder(tf.float32, [None] + list(input_shape))
-    act_t_ph      = tf.placeholder(tf.int32,   [None])
-    return_ph     = tf.placeholder(tf.float32, [None])
+    act_t_ph      = tf.placeholder(tf.int32,   [None, n_actions])
+    return_ph     = tf.placeholder(tf.float32, [None, n_actions])
 
-    qvalues, rnn_state_tf = q_func(obs_t_ph, n_actions, scope='q_func')
+    qvalues, rnn_state_tf = q_func(obs_t_ph, 3 * n_actions, scope='q_func')
+    #argmax_q = tf.argmax(tf.argmax(qvalues, axis=2), axis=1)
+    xqvalues = tf.reshape(qvalues, [-1, 3])
+    print(xqvalues.shape)
     q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
 
-    action_indices = tf.stack([tf.range(tf.size(act_t_ph)), act_t_ph], axis=-1)
-    onpolicy_qvalues = tf.gather_nd(qvalues, action_indices)
+    # cart product
+    #a = tf.range(64)[:, None, None]
+    #b = tf.range(2)[None, :, None]
+    #ab = tf.concat([a + tf.zeros_like(b), tf.zeros_like(a) + b], axis=2)
+    #print(ab.shape)
+    #return
+
+    x = tf.range(tf.size(act_t_ph))
+    action_indices = tf.stack([x, x])
+    print(action_indices.shape)
+    action_indices = tf.stack([x, tf.reshape(act_t_ph, [-1])], axis=-1)
+    print(action_indices.shape)
+    onpolicy_qvalues = tf.gather_nd(xqvalues, action_indices)
+    onpolicy_qvalues = tf.reshape(onpolicy_qvalues, [-1, 2])
+    print(onpolicy_qvalues.shape)
 
     td_error = return_ph - onpolicy_qvalues
     total_error = tf.reduce_mean(tf.square(td_error))
@@ -56,7 +77,8 @@ def learn(env,
             obs_t_ph: states,
             act_t_ph: actions,
         })
-        mask = (actions == np.argmax(qvals, axis=1))
+        #mask = (actions == np.argmax(qvals, axis=1))
+        mask = np.ones_like(onpolicy_qvals)
         return onpolicy_qvals, mask
 
     replay_memory.register_refresh_func(refresh)
@@ -71,15 +93,15 @@ def learn(env,
             if rnn_state is not None:
                 feed_dict[q_func.rnn_state] = rnn_state
 
-            q, rnn_state = session.run([qvalues, rnn_state_tf], feed_dict)
+            q, rnn_state = session.run([xqvalues, rnn_state_tf], feed_dict)
 
         else:
-            q = session.run(qvalues, feed_dict={obs_t_ph: obs[None]})
+            q = session.run(xqvalues, feed_dict={obs_t_ph: obs[None]})
 
         if random.random() < epsilon:
             action = env.action_space.sample()
         else:
-            action = np.argmax(q)
+            action = np.argmax(q, axis=1)
 
         return action, rnn_state
 
@@ -130,6 +152,7 @@ def learn(env,
         action, rnn_state = epsilon_greedy(obs, rnn_state, epsilon)
 
         obs, reward, done, _ = env.step(action)
+        #print(action.shape)
         replay_memory.store_effect(action, reward, done)
 
         if done:

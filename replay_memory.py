@@ -64,7 +64,7 @@ class Episode:
 
 def shifted(array, k):
     '''Shifts array left by k elements and pads with zeros'''
-    return np.pad(array, (0, k), mode='constant')[k:]
+    return np.pad(array, ((0, k), (0, 0)), mode='constant')[k:]
 
 
 class LambdaEpisode(Episode):
@@ -73,7 +73,7 @@ class LambdaEpisode(Episode):
 
     def _calc_lambda_returns(self, qvalues, mask):
         next_qvalues = shifted(qvalues, 1)  # Final state in episode is terminal
-        lambda_returns = self.reward + (self.discount * next_qvalues)
+        lambda_returns = self.reward[:, None] + (self.discount * next_qvalues)
         for i in reversed(range(self.length - 1)):
             lambda_returns[i] += (self.discount * self.Lambda * mask[i]) * (lambda_returns[i+1] - next_qvalues[i])
         return lambda_returns

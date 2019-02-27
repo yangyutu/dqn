@@ -1,4 +1,4 @@
-import roboschool
+#import roboschool
 import gym
 import tensorflow as tf
 import numpy as np
@@ -13,21 +13,33 @@ class PulseWidthModulatedEnv(gym.ActionWrapper):
     def __init__(self, env):
         super().__init__(env)
         assert isinstance(self.action_space, gym.spaces.Box)
-        self.old_action_space = self.action_space
-        print(self.old_action_space)
+        assert len(self.action_space.shape) == 1
 
-        self.action_space = gym.spaces.Discrete(n=3)
+        shape = self.action_space.shape
+        low = self.action_space.low
+        high = self.action_space.high
+
+        self.old_action_space = self.action_space
+        self.nvec = 3 * np.ones(shape)
+        self.action_space = gym.spaces.MultiDiscrete(self.nvec)
+
+        #print(self.old_action_space)
+
+        self.actions = {
+            0: low,
+            1: np.zeros(shape),
+            2: high,
+        }
 
     def action(self, action):
-        return {
-            0: self.old_action_space.low,
-            1: np.zeros(self.old_action_space.shape),
-            2: self.old_action_space.high,
-        }[action]
+        a = np.zeros_like(action, dtype=np.float32)
+        for k, v in self.actions.items():
+            a += (action == k) * v
+        return a
 
 
 def main():
-    env = gym.make('RoboschoolInvertedPendulum-v1')
+    env = gym.make('LunarLanderContinuous-v2')
     env = PulseWidthModulatedEnv(env)
     env = gym.wrappers.Monitor(env, 'videos/', force=True, video_callable=lambda e: False)
 
