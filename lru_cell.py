@@ -56,14 +56,16 @@ class LRUCell(rnn_cell_impl.RNNCell):
             raise ValueError('Could not infer input size from inputs.get_shape()[-1]')
 
         with vs.variable_scope(vs.get_variable_scope(), initializer=self._initializer):
+            cell_inputs = array_ops.concat([inputs, state], axis=1)
+
             if self._linear is None:
-                self._linear = _Linear(inputs, self._num_units, build_bias=True)
+                self._linear = _Linear(cell_inputs, self._num_units, build_bias=True)
 
-            weighted_inputs = self._linear(inputs)
+            delta_act = self._linear(cell_inputs)
+            delta = math_ops.maximum(0.0, delta_act - self._forget_bias)
 
-            z = math_ops.sigmoid(weighted_inputs + state + self._forget_bias)
-            new_state = z * weighted_inputs + (1.0 - z) * state
-            new_output = self._activation(new_state)
+            new_state = state + delta
+            new_output = new_state
 
         return new_output, new_state
 
