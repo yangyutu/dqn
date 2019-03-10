@@ -47,7 +47,7 @@ def learn(env,
     total_error = tf.reduce_mean(tf.square(td_error))
 
     #~~#
-    print('total # of parameters:', np.sum([np.prod(v.shape) for v in tf.trainable_variables()]))
+    print('total # of parameters:', np.sum([np.prod(v.shape) for v in tf.trainable_variables()]), flush=True)
     #return
     #~~#
 

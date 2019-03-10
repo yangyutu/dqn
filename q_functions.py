@@ -66,7 +66,7 @@ class AtariRecurrentConvNet2(QFunction):
             hidden = tf.reshape(hidden, [tf.shape(state)[0], state.shape[1], tf.size(hidden[0])])
 
             from lru_cell import LRUCell
-            cell = LRUCell(num_units=2379)
+            cell = LRUCell(num_units=1582)
             #from lru_cell import AddressableMemoryArray
             #cell = AddressableMemoryArray(num_units=512)
             self.rnn_state = cell.zero_state(tf.shape(state)[0], tf.float32)
