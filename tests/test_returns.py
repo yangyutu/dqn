@@ -31,6 +31,7 @@ class TestCaseReturns(unittest.TestCase):
             replay_memory.store_effect(action, reward, done)
 
     def assertNumpyEqual(self, x, y):
+        x, y = map(np.array, [x, y])
         self.assertEqual(x.shape, y.shape)
         self.assertEqual(x.dtype, y.dtype)
         self.assertTrue(np.allclose(x - y, 0.0))
@@ -41,15 +42,15 @@ class TestCaseReturns(unittest.TestCase):
 
         # First episode
         e = replay_memory.episodes[0]
-        self.assertNumpyEqual(e.obs,     np.array([    0,     1,    2]))
-        self.assertNumpyEqual(e.action,  np.array([    7,     0,    1]))
-        self.assertNumpyEqual(e.returns, np.array([190.0, 260.0, 20.0]))
+        self.assertNumpyEqual(e.obs,     [    0,     1,    2])
+        self.assertNumpyEqual(e.action,  [    7,     0,    1])
+        self.assertNumpyEqual(e.returns, [190.0, 260.0, 20.0])
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([    3,     4,    5,     6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([    6,     4,    2,     5,     3]))
-        self.assertNumpyEqual(e.returns, np.array([250.0, 210.0, 60.0, 220.0, -40.0]))
+        self.assertNumpyEqual(e.obs,     [    3,     4,    5,     6,     7])
+        self.assertNumpyEqual(e.action,  [    6,     4,    2,     5,     3])
+        self.assertNumpyEqual(e.returns, [250.0, 210.0, 60.0, 220.0, -40.0])
 
     def test_nstep(self):
         replay_memory = NStepReplayMemory(size=20, history_len=1, discount=0.9, nsteps=3)
@@ -57,15 +58,15 @@ class TestCaseReturns(unittest.TestCase):
 
         # First episode
         e = replay_memory.episodes[0]
-        self.assertNumpyEqual(e.obs,     np.array([   0,   1,    2]))
-        self.assertNumpyEqual(e.action,  np.array([   7,   0,    1]))
-        self.assertNumpyEqual(e.returns, np.array([17.2, 8.0, 20.0]))
+        self.assertNumpyEqual(e.obs,     [   0,   1,    2])
+        self.assertNumpyEqual(e.action,  [   7,   0,    1])
+        self.assertNumpyEqual(e.returns, [17.2, 8.0, 20.0])
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([   3,     4,     5,   6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([   6,     4,     2,   5,     3]))
-        self.assertNumpyEqual(e.returns, np.array([55.6, 181.2, -26.4, 4.0, -40.0]))
+        self.assertNumpyEqual(e.obs,     [   3,     4,     5,   6,     7])
+        self.assertNumpyEqual(e.action,  [   6,     4,     2,   5,     3])
+        self.assertNumpyEqual(e.returns, [55.6, 181.2, -26.4, 4.0, -40.0])
 
     def test_pengs_lambda(self):
         replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.8,
@@ -74,15 +75,15 @@ class TestCaseReturns(unittest.TestCase):
 
         # First episode
         e = replay_memory.episodes[0]
-        self.assertNumpyEqual(e.obs,     np.array([     0,    1,    2]))
-        self.assertNumpyEqual(e.action,  np.array([     7,    0,    1]))
-        self.assertNumpyEqual(e.returns, np.array([88.048, 58.4, 20.0]))
+        self.assertNumpyEqual(e.obs,     [     0,    1,    2])
+        self.assertNumpyEqual(e.action,  [     7,    0,    1])
+        self.assertNumpyEqual(e.returns, [88.048, 58.4, 20.0])
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([         3,        4,      5,    6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([         6,        4,      2,    5,     3]))
-        self.assertNumpyEqual(e.returns, np.array([92.9165056, 81.82848, 21.984, 47.2, -40.0]))
+        self.assertNumpyEqual(e.obs,     [         3,        4,      5,    6,     7])
+        self.assertNumpyEqual(e.action,  [         6,        4,      2,    5,     3])
+        self.assertNumpyEqual(e.returns, [92.9165056, 81.82848, 21.984, 47.2, -40.0])
 
     def test_watkins_lambda(self):
         replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.8,
@@ -91,15 +92,15 @@ class TestCaseReturns(unittest.TestCase):
 
         # First episode
         e = replay_memory.episodes[0]
-        self.assertNumpyEqual(e.obs,     np.array([    0,     1,    2]))
-        self.assertNumpyEqual(e.action,  np.array([    7,     0,    1]))
-        self.assertNumpyEqual(e.returns, np.array([233.2, 260.0, 20.0]))
+        self.assertNumpyEqual(e.obs,     [    0,     1,    2])
+        self.assertNumpyEqual(e.action,  [    7,     0,    1])
+        self.assertNumpyEqual(e.returns, [233.2, 260.0, 20.0])
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([      3,     4,    5,    6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([      6,     4,    2,    5,     3]))
-        self.assertNumpyEqual(e.returns, np.array([112.624, 109.2, 60.0, 47.2, -40.0]))
+        self.assertNumpyEqual(e.obs,     [      3,     4,    5,    6,     7])
+        self.assertNumpyEqual(e.action,  [      6,     4,    2,    5,     3])
+        self.assertNumpyEqual(e.returns, [112.624, 109.2, 60.0, 47.2, -40.0])
 
     def test_pengs_renormalized_lambda(self):
         replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.5,
@@ -108,15 +109,15 @@ class TestCaseReturns(unittest.TestCase):
 
         # First episode
         e = replay_memory.episodes[0]
-        self.assertNumpyEqual(e.obs,     np.array([           0,     1,    2]))
-        self.assertNumpyEqual(e.action,  np.array([           7,     0,    1]))
-        self.assertNumpyEqual(e.returns, np.array([180.74285714, 176.0, 20.0]))
+        self.assertNumpyEqual(e.obs,     [           0,     1,    2])
+        self.assertNumpyEqual(e.action,  [           7,     0,    1])
+        self.assertNumpyEqual(e.returns, [180.74285714, 176.0, 20.0])
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([           3,       4,           5,     6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([           6,       4,           2,     5,     3]))
-        self.assertNumpyEqual(e.returns, np.array([188.58632258, 158.976, 78.51428571, 148.0, -40.0]))
+        self.assertNumpyEqual(e.obs,     [           3,       4,           5,     6,     7])
+        self.assertNumpyEqual(e.action,  [           6,       4,           2,     5,     3])
+        self.assertNumpyEqual(e.returns, [188.58632258, 158.976, 78.51428571, 148.0, -40.0])
 
     def test_watkins_renormalized_lambda(self):
         replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.5,
@@ -125,12 +126,12 @@ class TestCaseReturns(unittest.TestCase):
 
         # First episode
         e = replay_memory.episodes[0]
-        self.assertNumpyEqual(e.obs,     np.array([    0,     1,    2]))
-        self.assertNumpyEqual(e.action,  np.array([    7,     0,    1]))
-        self.assertNumpyEqual(e.returns, np.array([208.0, 260.0, 20.0]))
+        self.assertNumpyEqual(e.obs,     [    0,     1,    2])
+        self.assertNumpyEqual(e.action,  [    7,     0,    1])
+        self.assertNumpyEqual(e.returns, [208.0, 260.0, 20.0])
 
         # Second episode
         e = replay_memory.episodes[1]
-        self.assertNumpyEqual(e.obs,     np.array([          3,     4,    5,     6,     7]))
-        self.assertNumpyEqual(e.action,  np.array([          6,     4,    2,     5,     3]))
-        self.assertNumpyEqual(e.returns, np.array([199.08571429, 168.0, 60.0, 148.0, -40.0]))
+        self.assertNumpyEqual(e.obs,     [           3,     4,    5,     6,     7])
+        self.assertNumpyEqual(e.action,  [           6,     4,    2,     5,     3])
+        self.assertNumpyEqual(e.returns, [199.08571429, 168.0, 60.0, 148.0, -40.0])
