@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from replay_memory import NStepReplayMemory, LambdaReplayMemory, NormalizedLambdaReplayMemory
+from replay_memory import NStepReplayMemory, LambdaReplayMemory, RenormalizedLambdaReplayMemory
 
 
 class TestCaseReturns(unittest.TestCase):
@@ -135,7 +135,7 @@ class TestCaseReturns(unittest.TestCase):
         self.assertNumpyEqual(e.returns, np.array([112.624, 109.2, 60.0, 47.2, -40.0]))
 
     def test_pengs_renormalized_lambda(self):
-        replay_memory = NormalizedLambdaReplayMemory(
+        replay_memory = RenormalizedLambdaReplayMemory(
             size=20,
             history_len=1,
             discount=0.9,
@@ -163,7 +163,7 @@ class TestCaseReturns(unittest.TestCase):
     def test_watkins_renormalized_lambda(self):
         self.exp_mask = np.array([1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0])  # Suppose a_1 and a_5 are exploratory
 
-        replay_memory = NormalizedLambdaReplayMemory(
+        replay_memory = RenormalizedLambdaReplayMemory(
             size=20,
             history_len=1,
             discount=0.9,

@@ -79,7 +79,7 @@ class LambdaEpisode(Episode):
         return lambda_returns
 
 
-class NormalizedLambdaEpisode(LambdaEpisode):
+class RenormalizedLambdaEpisode(LambdaEpisode):
     def _calc_lambda_returns(self, qvalues, mask):
         next_qvalues = shifted(qvalues, 1)  # Final state in episode is terminal
         lambda_returns = self.reward + (self.discount * next_qvalues)
@@ -192,9 +192,9 @@ class LambdaReplayMemory(ReplayMemory):
         return LambdaEpisode(self.history_len, self.discount, self.Lambda, self.refresh_func)
 
 
-class NormalizedLambdaReplayMemory(LambdaReplayMemory):
+class RenormalizedLambdaReplayMemory(LambdaReplayMemory):
     def _new_episode(self):
-        return NormalizedLambdaEpisode(self.history_len, self.discount, self.Lambda, self.refresh_func)
+        return RenormalizedLambdaEpisode(self.history_len, self.discount, self.Lambda, self.refresh_func)
 
 
 class NStepReplayMemory(ReplayMemory):
