@@ -1,27 +1,34 @@
 import unittest
 import numpy as np
-from replay_memory import NStepReplayMemory, LambdaReplayMemory, RenormalizedLambdaReplayMemory
+from replay_memory import NStepReplayMemory, LambdaReplayMemory
 
 
 class TestCaseReturns(unittest.TestCase):
     def setUp(self):
         self.transitions = [
-            # state, action, reward, done?, qvalue
-            (0, 7,  10.0, False, 100.0),
-            (1, 0, -10.0, False, 200.0),
-            (2, 1,  20.0, True,  300.0),
-            (3, 6, -20.0, False, 400.0),
-            (4, 4,  30.0, False, 300.0),
-            (5, 2, -30.0, False, 200.0),
-            (6, 5,  40.0, False, 100.0),
-            (7, 3, -40.0, True,  200.0),
+            # state, action, reward, done?, qvalue, greedy?
+            (0, 7,  10.0, False, 100.0, True),
+            (1, 0, -10.0, False, 200.0, False),
+            (2, 1,  20.0, True,  300.0, True),
+            (3, 6, -20.0, False, 400.0, True),
+            (4, 4,  30.0, False, 300.0, True),
+            (5, 2, -30.0, False, 200.0, False),
+            (6, 5,  40.0, False, 100.0, True),
+            (7, 3, -40.0, True,  200.0, True),
         ]
-        # Mock refresh function to return our custom qvalues and exploratory mask
+        # Mock refresh function to return our custom qvalues and greedy mask
         qvalues = np.array([t[4] for t in self.transitions])
-        self.exp_mask = np.array([1.0 for _ in range(len(self.transitions))])  # By default, assume every action is on-policy: i.e. Peng's Q(λ)
-        self.refresh = lambda s, a: (qvalues[s].reshape(-1), self.exp_mask[s].reshape(-1))
-        # Now remove qvalues from transitions, because tests don't need them explicitly
-        self.transitions = [(np.array(state), np.array(action), reward, done) for state, action, reward, done, _ in self.transitions]
+        mask    = np.array([t[5] for t in self.transitions], dtype=np.float32)
+        self.refresh = lambda s, a: (qvalues[s].reshape(-1), mask[s].reshape(-1))
+        # Now remove Q-value information from transitions, because tests don't need it explicitly
+        self.transitions = [(np.array(state), np.array(action), reward, done) for state, action, reward, done, _, _ in self.transitions]
+
+    def fill(self, replay_memory):
+        replay_memory.register_refresh_func(self.refresh)
+        for state, action, reward, done in self.transitions:
+            replay_memory.store_frame(state)
+            state = replay_memory.encode_recent_observation()
+            replay_memory.store_effect(action, reward, done)
 
     def assertNumpyEqual(self, x, y):
         self.assertEqual(x.shape, y.shape)
@@ -29,18 +36,8 @@ class TestCaseReturns(unittest.TestCase):
         self.assertTrue(np.allclose(x - y, 0.0))
 
     def test_1step(self):
-        replay_memory = NStepReplayMemory(
-            size=20,
-            history_len=1,
-            discount=0.9,
-            nsteps=1,
-        )
-        replay_memory.register_refresh_func(self.refresh)
-
-        for state, action, reward, done in self.transitions:
-            replay_memory.store_frame(state)
-            state = replay_memory.encode_recent_observation()
-            replay_memory.store_effect(action, reward, done)
+        replay_memory = NStepReplayMemory(size=20, history_len=1, discount=0.9, nsteps=1)
+        self.fill(replay_memory)
 
         # First episode
         e = replay_memory.episodes[0]
@@ -55,18 +52,8 @@ class TestCaseReturns(unittest.TestCase):
         self.assertNumpyEqual(e.returns, np.array([250.0, 210.0, 60.0, 220.0, -40.0]))
 
     def test_nstep(self):
-        replay_memory = NStepReplayMemory(
-            size=20,
-            history_len=1,
-            discount=0.9,
-            nsteps=3,
-        )
-        replay_memory.register_refresh_func(self.refresh)
-
-        for state, action, reward, done in self.transitions:
-            replay_memory.store_frame(state)
-            state = replay_memory.encode_recent_observation()
-            replay_memory.store_effect(action, reward, done)
+        replay_memory = NStepReplayMemory(size=20, history_len=1, discount=0.9, nsteps=3)
+        self.fill(replay_memory)
 
         # First episode
         e = replay_memory.episodes[0]
@@ -81,18 +68,9 @@ class TestCaseReturns(unittest.TestCase):
         self.assertNumpyEqual(e.returns, np.array([55.6, 181.2, -26.4, 4.0, -40.0]))
 
     def test_pengs_lambda(self):
-        replay_memory = LambdaReplayMemory(
-            size=20,
-            history_len=1,
-            discount=0.9,
-            Lambda=0.8,
-        )
-        replay_memory.register_refresh_func(self.refresh)
-
-        for state, action, reward, done in self.transitions:
-            replay_memory.store_frame(state)
-            state = replay_memory.encode_recent_observation()
-            replay_memory.store_effect(action, reward, done)
+        replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.8,
+                                           renormalize=False, use_watkins=False)
+        self.fill(replay_memory)
 
         # First episode
         e = replay_memory.episodes[0]
@@ -107,20 +85,9 @@ class TestCaseReturns(unittest.TestCase):
         self.assertNumpyEqual(e.returns, np.array([92.9165056, 81.82848, 21.984, 47.2, -40.0]))
 
     def test_watkins_lambda(self):
-        self.exp_mask = np.array([1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0])  # Suppose a_1 and a_5 are exploratory
-
-        replay_memory = LambdaReplayMemory(
-            size=20,
-            history_len=1,
-            discount=0.9,
-            Lambda=0.8,
-        )
-        replay_memory.register_refresh_func(self.refresh)
-
-        for state, action, reward, done in self.transitions:
-            replay_memory.store_frame(state)
-            state = replay_memory.encode_recent_observation()
-            replay_memory.store_effect(action, reward, done)
+        replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.8,
+                                           renormalize=False, use_watkins=True)
+        self.fill(replay_memory)
 
         # First episode
         e = replay_memory.episodes[0]
@@ -135,18 +102,9 @@ class TestCaseReturns(unittest.TestCase):
         self.assertNumpyEqual(e.returns, np.array([112.624, 109.2, 60.0, 47.2, -40.0]))
 
     def test_pengs_renormalized_lambda(self):
-        replay_memory = RenormalizedLambdaReplayMemory(
-            size=20,
-            history_len=1,
-            discount=0.9,
-            Lambda=0.5,
-        )
-        replay_memory.register_refresh_func(self.refresh)
-
-        for state, action, reward, done in self.transitions:
-            replay_memory.store_frame(state)
-            state = replay_memory.encode_recent_observation()
-            replay_memory.store_effect(action, reward, done)
+        replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.5,
+                                           renormalize=True, use_watkins=False)
+        self.fill(replay_memory)
 
         # First episode
         e = replay_memory.episodes[0]
@@ -161,20 +119,9 @@ class TestCaseReturns(unittest.TestCase):
         self.assertNumpyEqual(e.returns, np.array([188.58632258, 158.976, 78.51428571, 148.0, -40.0]))
 
     def test_watkins_renormalized_lambda(self):
-        self.exp_mask = np.array([1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0])  # Suppose a_1 and a_5 are exploratory
-
-        replay_memory = RenormalizedLambdaReplayMemory(
-            size=20,
-            history_len=1,
-            discount=0.9,
-            Lambda=0.5,
-        )
-        replay_memory.register_refresh_func(self.refresh)
-
-        for state, action, reward, done in self.transitions:
-            replay_memory.store_frame(state)
-            state = replay_memory.encode_recent_observation()
-            replay_memory.store_effect(action, reward, done)
+        replay_memory = LambdaReplayMemory(size=20, history_len=1, discount=0.9, Lambda=0.5,
+                                           renormalize=True, use_watkins=True)
+        self.fill(replay_memory)
 
         # First episode
         e = replay_memory.episodes[0]
